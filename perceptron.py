@@ -137,13 +137,14 @@ class Perceptron:
         """
         Rounds found weights with specified precision.
 
-        :param round_digits: Number of precision digits.
+        :param round_digits: Number of precision digits. If lower than 0, function does nothing.
         :return: Nothing.
         """
-        rounded_weights = []
-        for weight in self.__weights:
-            rounded_weights.append(numpy.round(weight, round_digits))
-        self.__weights = rounded_weights
+        if round_digits >= 0:
+            rounded_weights = []
+            for weight in self.__weights:
+                rounded_weights.append(numpy.round(weight, round_digits))
+            self.__weights = rounded_weights
 
     @staticmethod
     def __evaluate_output(dot_product):
@@ -223,13 +224,14 @@ class Perceptron:
                 return False
         return True
 
-    # Trains perceptron with simple
-    # Perceptron Algorithm
-    # Returns a pair of array and int
-    # array -> found weights
-    # int -> iterations taken
-    # Could return None if possible weights not found
     def train(self, round_digits=-1):
+        """
+        Trains perceptron using simple perceptron algorithm.
+
+        :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
+        :return: Pair of (weights, iterations taken) after training.
+                    If weights were not found, returns pair of (None, None)
+        """
         i = 0                          # i = iteration
         iwc = 0                        # iwc = iterations without change
         ic = len(self.__train_inputs)  # ic = input count
@@ -255,20 +257,19 @@ class Perceptron:
                 self.__draw_function(label="Iteration " + str(i), figure=figure)
 
         self.__show_figure(figure)
-        if round_digits >= 0:
-            self.__round_weights(round_digits)
+        self.__round_weights(round_digits)
         return self.__weights, i + 1
 
-    # Trains perceptron with Batch Update
-    # Perceptron Algorithm
-    # frt = from rbf train
-    # Making frt=True stops function
-    # from drawing plots.
-    # Returns a pair of array and int
-    # array -> found weights
-    # int -> iterations taken
-    # Could return None if possible weights not found
     def bu_train(self, frt=False, round_digits=-1):
+        """
+        Trains perceptron using batch update perceptron algorithm.
+
+        :param frt: Shows if this method was called from rbf_train method. Default value is False.
+                    Making it "True" stops algorithm from drawing inputs and functions.
+        :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
+        :return: Pair of (weights, iterations taken) after training.
+                    If weights were not found, returns pair of (None, None)
+        """
         i = 0                          # i = iteration
         ic = len(self.__train_inputs)  # ic = input count
         should_end = False
@@ -301,8 +302,7 @@ class Perceptron:
 
         if not frt:
             self.__show_figure(figure)
-        if round_digits >= 0:
-            self.__round_weights(round_digits)
+        self.__round_weights(round_digits)
         return self.__weights, i + 1
 
     # RBF kernel function

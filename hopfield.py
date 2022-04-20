@@ -71,7 +71,7 @@ class HopfieldNetwork:
         n = 0    # current neuron
         nwc = 0  # neurons without change
         copy_point = numpy.copy(point)
-        while nwc != self.__neuron_count:
+        while nwc != self.__neuron_count + 1:
             i += 1
             # uv = u value
             uv = (self.__weights.dot(copy_point) + self.__control_signal)[0, n]
@@ -81,6 +81,38 @@ class HopfieldNetwork:
                 copy_point[n] = output
             else:
                 nwc += 1
+            n = (n + 1) % self.__neuron_count
+        return [point, copy_point, i]
+
+    @staticmethod
+    def __check_history(history, point, neuron):
+        for (h_point, h_neuron, h_iteration) in history:
+            if numpy.array_equal(h_point, point) and h_neuron == neuron:
+                return h_iteration
+        return -1
+
+    # Checks single point for stability point or cycle.
+    def __check_cycle(self, point):
+        i = -1   # iteration
+        n = 0    # current neuron
+        nwc = 0  # neurons without change
+        copy_point = numpy.copy(point)
+        history = []
+        while nwc != self.__neuron_count + 1:
+            i += 1
+            # uv = u value
+            uv = (self.__weights.dot(copy_point) + self.__control_signal)[0, n]
+            output = self.__evaluate_output(uv)
+            if output != copy_point[n]:
+                nwc = 0
+                copy_point[n] = output
+            else:
+                nwc += 1
+            # fih = found in history
+            fih = self.__check_history(history, copy_point, n)
+            if fih != -1:
+                return [point, i - fih, i]
+            history.append((copy_point, n, i))
             n = (n + 1) % self.__neuron_count
         return [point, copy_point, i]
 
