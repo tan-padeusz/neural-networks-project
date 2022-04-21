@@ -110,12 +110,23 @@ class SynchronousHopfieldNetwork:
         return self.is_symmatrix() and numpy.all(numpy.linalg.eigvals(self.__weights) > 0)
 
     def search_for_stability_points(self):
+        """
+        Searches points for stability points or cycles.
+
+        :return: List of triples of (initial_point, has_stabilised, result).
+        """
         result = []
         for point in self.__points:
             result.append(self.__search_for_stability_points(point))
         return result
 
     def __search_for_stability_points(self, point):
+        """
+        Checks if given point is stability point or enters cycle.
+
+        :param point: Point to be checked.
+        :return: Triple of (initial_point, has_stabilised, result)
+        """
         iteration = 0
         neurons_without_change = 0
         old_point = numpy.copy(point)
@@ -212,3 +223,19 @@ class SynchronousHopfieldNetwork:
                     value_array.append(upper_value)
             points.append(value_array)
         return points
+
+    @staticmethod
+    def print_result(results):
+        """
+        Prints Hopfield network results.
+
+        :param results: Results to be printed.
+        :return: Nothing.
+        """
+        for (initial_point, has_stabilised, result) in results:
+            message = "Point " + str(initial_point) + " has "
+            if has_stabilised:
+                message += "stabilised at " + str(result) + "."
+            else:
+                message += "entered cycle: " + str(result) + "."
+            print(message)
