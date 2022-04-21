@@ -46,6 +46,7 @@ if __name__ == '__main__':
         [-2, 0, -2],
         [2, -2, 0]
     ])
+    # minor change
     control_signal = [0, 0, 0]
     hn = HopfieldNetwork(3, points, weights, control_signal)
     for result in hn.check_stability_points():
