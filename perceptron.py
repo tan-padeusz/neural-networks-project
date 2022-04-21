@@ -260,15 +260,28 @@ class Perceptron:
         self.__round_weights(round_digits)
         return self.__weights, i + 1
 
-    def bu_train(self, frt=False, round_digits=-1):
+    def bu_train(self, round_digits=-1):
         """
         Trains perceptron using batch update perceptron algorithm.
 
-        :param frt: Shows if this method was called from rbf_train method. Default value is False.
-                    Making it "True" stops algorithm from drawing inputs and functions.
-        :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
+        :param round_digits: Rounds final weights with given precision. If lower than 0, does nothing.
+                             Default value is -1.
         :return: Pair of (weights, iterations taken) after training.
-                    If weights were not found, returns pair of (None, None)
+                 If weights were not found, returns pair of (None, None).
+        """
+        return self.__bu_train(False, round_digits)
+
+    def __bu_train(self, frt, round_digits=-1):
+        """
+        Trains perceptron using batch update perceptron algorithm.
+
+        :param round_digits: Rounds weights with given precision.
+                             If lower than 0, does nothing.
+                             Default value is -1.
+        :param frt: Shows if this method was called from rbf_train method.
+                    If value is "True", prevents bu_train from drawing inputs and decision boundaries.
+        :return: Pair of (weights, iterations taken) after training.
+                 If weights were not found, returns pair of (None, None)
         """
         i = 0                          # i = iteration
         ic = len(self.__train_inputs)  # ic = input count
@@ -305,38 +318,32 @@ class Perceptron:
         self.__round_weights(round_digits)
         return self.__weights, i + 1
 
-    # RBF kernel function
     def __rbf_kernel(self, x, y):
+        """
+        Calculates RBF kernel function for given x and y.
+
+        :param x: x value
+        :param y: y value
+        :return: Evaluated kernel output for given values.
+        """
+
         numerator = numpy.power(-1 * numpy.absolute(x - y), 2)
         denominator = 2 * numpy.power(self.__constants[1], 2)
         return numpy.exp(numerator / denominator)
 
-    # Trains perceptron with Batch Update
-    # Perceptron Algorithm with RBF
-    # kernel for solving XOR problem.
-    # Returns a pair of array and int
-    # array -> found weights
-    # int -> iterations taken
-    # Could return None if possible weights not found
     def rbf_train(self, round_digits=-1):
-        new_inputs = []
+        """
+        Trains perceptron using batch update perceptron algorithm
+        with expanding dimensions of inputs and weights using RBF kernel.
 
-        # cii = current input index
-        for cii in range(len(self.__train_inputs)):
-            train_input = self.__train_inputs[cii]
+        :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
+        :return: Pair of (weights, iterations taken) after training.
+                    If weights were not found, returns pair of (None, None)
+        """
+        for train_input in self.__train_inputs:
             rbf = self.__rbf_kernel(train_input[1], train_input[2])
-            new_input: array = []
-            for value in train_input:
-                new_input.append(value)
-            new_input.append(rbf)
-            new_inputs.append(new_input)
+            train_input.append(rbf)
 
-        new_weights: array = []
         weight_rbf = self.__rbf_kernel(self.__weights[1], self.__weights[2])
-        for value in self.__weights:
-            new_weights.append(value)
-        new_weights.append(weight_rbf)
-
-        self.__train_inputs = new_inputs
-        self.__weights = new_weights
-        return self.bu_train(True, round_digits)
+        self.__weights.append(weight_rbf)
+        return self.__bu_train(True, round_digits)

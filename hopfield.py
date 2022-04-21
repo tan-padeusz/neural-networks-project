@@ -9,6 +9,15 @@ class HopfieldException(Exception):
 class HopfieldNetwork:
     # Validates initial data
     def __validate_data(self):
+        """
+        Validates initial data.
+
+        :return: Nothing.
+        :raises HopfieldException: If no input points were given,
+                                   if given points have different lengths,
+                                   if weights matrix is not square matrix.
+        """
+
         if len(self.__points) == 0:
             raise HopfieldException("Network needs at least one point to learn!")
         for points in self.__points:
@@ -18,21 +27,33 @@ class HopfieldNetwork:
             raise HopfieldException("Weight matrix should be square with " + str(self.__neuron_count) + " rows"
                                     + " and " + str(self.__neuron_count) + " columns!")
 
-    # Checks if weight matrix is symmetric.
     def __check_symmatrix(self):
+        """
+        Checks if weights matrix is symmetric.
+
+        :return: True if weights matrix is symmetric. Else returns false.
+        """
         return numpy.transpose(self.__weights) == self.__weights
 
-    # Checks if elements on weight matrix's diagonal are zeroes.
     def __check_diagonal_zeroes(self):
+        """
+        Checks if elements on weights matrix diagonal are zeroes.
+
+        :return: True, if all elements are zero. Else returns false.
+        """
         diagonal = numpy.diagonal(self.__weights)
         for value in diagonal:
             if value != 0:
                 return False
         return True
 
-    # Checks if weight matrix is positive definite.
     def __check_positive_definite(self):
-        copy_matrix = self.__weights
+        """
+        Checks if weights matrix is positive definite.
+
+        :return: True is weights matrix is positive definite. Else returns false.
+        """
+        copy_matrix = numpy.copy(self.__weights)
         while copy_matrix.shape != (1, 1):
             if numpy.linalg.det(copy_matrix) <= 0:
                 return False
@@ -42,9 +63,12 @@ class HopfieldNetwork:
         else:
             return True
 
-    # Activation function
     @staticmethod
     def __evaluate_output(value):
+        """
+        Evaluates
+
+        """
         if value > 0:
             return 1
         else:
@@ -116,9 +140,16 @@ class HopfieldNetwork:
             n = (n + 1) % self.__neuron_count
         return [point, copy_point, i]
 
-    # Generates points to be used in network.
     @staticmethod
     def generate_points(size, lower_value=0, upper_value=1):
+        """
+        Generates points used in Hopfield network.
+
+        :param size: Point length.
+        :param lower_value: Transforms binary 0 into that value.
+        :param upper_value: Transforms binary 1 into that value.
+        :return: Array of points.
+        """
         max_value = numpy.power(2, size)
         points = []
         for value in range(max_value):
