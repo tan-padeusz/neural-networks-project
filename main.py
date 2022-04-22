@@ -10,7 +10,7 @@ if __name__ == '__main__':
         [2, -2, 0]
     ])
     network = SynchronousHopfieldNetwork(3, points, weights, [0, 0, 0])
-    SynchronousHopfieldNetwork.print_result(network.search_for_stability_points())
+    SynchronousHopfieldNetwork.print_results(network.search_for_stability_points())
 
     print("")
 
@@ -20,4 +20,4 @@ if __name__ == '__main__':
         [-1, 0]
     ])
     network = SynchronousHopfieldNetwork(2, points, weights, [0, 0])
-    SynchronousHopfieldNetwork.print_result(network.search_for_stability_points())
+    SynchronousHopfieldNetwork.print_results(network.search_for_stability_points())

@@ -113,19 +113,20 @@ class SynchronousHopfieldNetwork:
         """
         Searches points for stability points or cycles.
 
-        :return: List of triples of (initial_point, has_stabilised, result).
+        :return: List of pairs of (input_point, output_points).
         """
-        result = []
+        results = []
         for point in self.__points:
-            result.append(self.__search_for_stability_points(point))
-        return result
+            results.append(self.__search_for_stability_points(point))
+        return results
 
     def __search_for_stability_points(self, point):
         """
         Checks if given point is stability point or enters cycle.
 
         :param point: Point to be checked.
-        :return: Triple of (initial_point, has_stabilised, result)
+        :return: A pair of (input_point, output_points).
+                 Can return a pair of (None, None) if algorithm is forcibly stopped.
         """
         iteration = 0
         neurons_without_change = 0
@@ -141,15 +142,15 @@ class SynchronousHopfieldNetwork:
             history.append(new_point)
             historical_index = self.__search_history_for_point(history, new_point)
             if historical_index > -1:
-                return [point, False, self.__get_history_fragment(history, historical_index, iteration)]
+                return [point, self.__get_history_fragment(history, historical_index, iteration)]
             if numpy.array_equal(new_point, old_point):
                 neurons_without_change += 1
                 if neurons_without_change == self.__neuron_count + 1:
-                    return [point, True, new_point.astype(int)]
+                    return [point, [new_point]]
             else:
                 neurons_without_change = 0
                 old_point = new_point
-        return [None, None, None]
+        return [None, None]
 
     @staticmethod
     def __activation_function(value):
@@ -225,17 +226,17 @@ class SynchronousHopfieldNetwork:
         return points
 
     @staticmethod
-    def print_result(results):
+    def print_results(results):
         """
         Prints Hopfield network results.
 
         :param results: Results to be printed.
         :return: Nothing.
         """
-        for (initial_point, has_stabilised, result) in results:
-            message = "Point " + str(initial_point) + " has "
-            if has_stabilised:
-                message += "stabilised at " + str(result) + "."
+        for (input_point, output_points) in results:
+            message = "Point " + str(input_point) + " has "
+            if len(output_points) == 1:
+                message += "stabilised at " + str(output_points[0]) + "."
             else:
-                message += "entered cycle: " + str(result) + "."
+                message += "entered cycle: " + str(output_points) + "."
             print(message)
