@@ -1,24 +1,15 @@
 import array
 import numpy
 import matplotlib.pyplot as pyplot
-from enum import Enum
 
-
-class LogicFunction(Enum):
-    """
-    Enum class that represents logic functions and their desired outputs.
-    """
-    AND = [0, 0, 0, 1]
-    XOR = [0, 1, 1, 0]
+from exception import PerceptronException
+from lf import LogicFunction
 
 
 class Perceptron:
     """
     Class that represents perceptron network with single neuron.
     """
-    class __PerceptronException(Exception):
-        def __init__(self, message):
-            super().__init__(message)
 
     @staticmethod
     def __validate_weights(weights):
@@ -29,7 +20,7 @@ class Perceptron:
         :return: If vector is valid, returns vector. Else raises PerceptronException.
         """
         if len(weights) != 3:
-            raise Perceptron.__PerceptronException("Weight vector should have exactly 3 elements!")
+            raise PerceptronException("Weight vector should have exactly 3 elements!")
         return weights
 
     @staticmethod
@@ -41,10 +32,10 @@ class Perceptron:
         :return: If constant array is valid, returns constant array. Else raises PerceptronException.
         """
         if len(constants) != 2:
-            raise Perceptron.__PerceptronException("Constants array should have exactly 2 elements!")
+            raise PerceptronException("Constants array should have exactly 2 elements!")
         for constant in constants:
             if constant == 0:
-                raise Perceptron.__PerceptronException("No constant should be equal to 0!")
+                raise PerceptronException("No constant should be equal to 0!")
         return constants
 
     @staticmethod
@@ -56,7 +47,7 @@ class Perceptron:
         :return: If stop iteration value is valid, returns that value. Else raises PerceptronException.
         """
         if stop_iteration < 20:
-            raise Perceptron.__PerceptronException("Perceptron should take at least 20 iterations to learn!")
+            raise PerceptronException("Perceptron should take at least 20 iterations to learn!")
         return stop_iteration
 
     def __init__(self, function: LogicFunction, weights: array, constants: array, stop_iteration: int = 200):
@@ -338,7 +329,7 @@ class Perceptron:
 
         :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
         :return: Pair of (weights, iterations taken) after training.
-                    If weights were not found, returns pair of (None, None)
+                    If weights were not found, returns a pair of (None, None)
         """
         for train_input in self.__train_inputs:
             rbf = self.__rbf_kernel(train_input[1], train_input[2])
