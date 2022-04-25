@@ -2,69 +2,156 @@ import numpy
 
 from exception import BackpropagationException
 from lf import LogicFunction
+from um import UpdateMethod
 
 
 class BackpropagationNetwork:
-    def __init__(self, initial_weights, alfa, learn_constant, stop_threshold=0.2):
+    def __init__(self, initial_weights, learn_constant, stop_threshold=0.2, stop_iteration=10):
+        """
+        Class that represents backpropagation network.
+
+        :param initial_weights: Initial weights used in network.
+                                Must be matrix with 3 rows and 3 columns.
+        :param learn_constant: Learn constant used in training.
+        :param stop_threshold: If evaluated error is lesser than this value, training stops.
+        :param stop_iteration: If iteration count is at least this value, training stops.
+        """
         self.__train_inputs = [
             [1, 0, 0],
             [1, 0, 1],
             [1, 1, 0],
             [1, 1, 1]
         ]
-        self.__train_outputs = LogicFunction.AND.value
+        self.__train_outputs = LogicFunction.XOR.value
 
         self.__weights = initial_weights
         self.__validate_initial_weights()
 
-        self.__alfa = alfa
         self.__learn_constant = learn_constant
-        self.__validate_constants()
+        self.__validate_learn_constant()
 
         self.__stop_threshold = stop_threshold
+        self.__validate_stop_threshold()
+
+        self.__stop_iteration = stop_iteration
+        self.__validate_stop_iteration()
 
     def __validate_initial_weights(self):
+        """
+        Validates "weights" property.
+
+        :raise BackpropagationException: If weight matrix is not square matrix with 3 rows and 3 columns.
+        """
         if self.__weights.shape != (3, 3):
             raise BackpropagationException("Weight matrix must be square with 3 rows and 3 columns!")
 
-    def __validate_constants(self):
-        if self.__alfa == 0:
-            raise BackpropagationException("Alfa must not be 0!")
+    def __validate_learn_constant(self):
+        """
+        Validates "learn constant" property.
+
+        :raise BackpropagationException: If property value is equal to 0.
+        """
         if self.__learn_constant == 0:
             raise BackpropagationException("Learn constant must not be 0!")
 
+    def __validate_stop_threshold(self):
+        """
+        Validates "stop_threshold" property.
+
+        :raise BackpropagationException: If property value is not greater than 0.
+        """
+        if self.__stop_threshold <= 0.0:
+            raise BackpropagationException("Stop threshold must be greater than 0!")
+
+    def __validate_stop_iteration(self):
+        """
+        Validates "stop iteration" property.
+
+        :raise BackpropagationException: If property value is lower than 5.
+        """
+        if self.__stop_iteration < 10:
+            raise BackpropagationException("There must be at least 5 iterations to forcibly stop training!")
+
     @staticmethod
     def __activation_function(value):
+        """
+        Activation function for neurons.
+
+        :param value: Parameter of activation function.
+        :return: Output of activation function.
+        """
         return 1.0 / (1.0 + numpy.exp(-value))
 
     @staticmethod
     def __activation_function_derivative(value):
+        """
+        Derivative of activation function for neurons.
+
+        :param value: Parameter of derivative of activation function.
+        :return: Output of derivative of activation function.
+        """
         numerator = numpy.exp(-value)
         denominator = numpy.power(numpy.exp(-value) + 1, 2)
         return numerator / denominator
 
-    def train(self):
+    def __update_weights(self, value):
+        """
+        Updates network weights.
+
+        :param value: Value by which weights will be updated (multiplied by learn constant).
+        """
+        self.__weights -= self.__learn_constant * numpy.array(value)
+
+    @staticmethod
+    def __sum_gradients(gradients):
+        """
+        Calculates sum of evaluated gradients (matrices addition).
+
+        :parameter gradients: An array of evaluated gradients.
+        :returns: Sum of gradients in array,
+        """
+        result = numpy.zeros((3, 3))
+        for row in range(3):
+            for column in range(3):
+                for gradient in range(4):
+                    result[row, column] += gradients[gradient][row][column]
+        return result
+
+    def train(self, update_method: UpdateMethod):
+        """
+        Trains network.
+
+        :param update_method: Parameter that indicates when weights should be updated.
+        :returns: A pair of (final_weights, iteration_count).
+        """
         iteration = 0
         while True:
             iteration += 1
             gradients = []
             error = 0.0
-            for index in range(3):
+            for index in range(4):
                 train_input = self.__train_inputs[index]
                 train_output = self.__train_outputs[index]
                 output, gradient = self.__evaluate_gradient(train_input, train_output)
                 gradients.append(gradient)
-                error += (train_output - output) ** 2
-            print("Error ", error, " at iteration ", iteration)
+                error += numpy.power(train_output - output, 2)
+                if update_method == UpdateMethod.PARTIAL_ENERGY:
+                    self.__update_weights(gradient)
             if error <= self.__stop_threshold:
                 return self.__weights, iteration
-            if iteration >= 200:
+            elif iteration >= self.__stop_iteration:
                 return self.__weights, iteration
-            else:
-                gradient_sum = numpy.sum(gradients)
-                self.__weights = self.__weights - self.__alfa * gradient_sum
+            elif update_method == UpdateMethod.TOTAL_ENERGY:
+                self.__update_weights(self.__sum_gradients(gradients))
 
     def __evaluate_gradient(self, train_input, train_output):
+        """
+        Evaluates gradient for network.
+
+        :param train_input: Input used in network.
+        :param train_output: Desired output.
+        :returns: Network gradient.
+        """
         st_neuron_net = numpy.dot(train_input, self.__weights[0])
         st_neuron_out = self.__activation_function(st_neuron_net)
 
@@ -93,4 +180,4 @@ class BackpropagationNetwork:
             delta_weights[index] = ro * derivative_value * mid_input[index]
         gradient.append(delta_weights)
 
-        return rd_neuron_out, numpy.array(gradient)
+        return rd_neuron_out, gradient

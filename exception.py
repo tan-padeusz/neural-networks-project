@@ -5,9 +5,9 @@ class PerceptronException(Exception):
 
 class HopfieldNetworkException(Exception):
     def __init__(self, message):
-        super.__init__(message)
+        super().__init__(message)
 
 
 class BackpropagationException(Exception):
     def __init__(self, message):
-        super.__init__(message)
+        super().__init__(message)

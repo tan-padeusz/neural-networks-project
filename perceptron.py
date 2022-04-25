@@ -1,4 +1,3 @@
-import array
 import numpy
 import matplotlib.pyplot as pyplot
 
@@ -11,53 +10,14 @@ class Perceptron:
     Class that represents perceptron network with single neuron.
     """
 
-    @staticmethod
-    def __validate_weights(weights):
-        """
-        Validates weight vector length.
-
-        :param weights: Weights vector to be validated
-        :return: If vector is valid, returns vector. Else raises PerceptronException.
-        """
-        if len(weights) != 3:
-            raise PerceptronException("Weight vector should have exactly 3 elements!")
-        return weights
-
-    @staticmethod
-    def __validate_constants(constants):
-        """
-        Validates constant array (number of elements and their values).
-
-        :param constants: Constant array to be validated.
-        :return: If constant array is valid, returns constant array. Else raises PerceptronException.
-        """
-        if len(constants) != 2:
-            raise PerceptronException("Constants array should have exactly 2 elements!")
-        for constant in constants:
-            if constant == 0:
-                raise PerceptronException("No constant should be equal to 0!")
-        return constants
-
-    @staticmethod
-    def __validate_stop_iteration(stop_iteration):
-        """
-        Validates stop iteration value.
-
-        :param stop_iteration: Number of iterations after which training should be forcibly stopped.
-        :return: If stop iteration value is valid, returns that value. Else raises PerceptronException.
-        """
-        if stop_iteration < 20:
-            raise PerceptronException("Perceptron should take at least 20 iterations to learn!")
-        return stop_iteration
-
-    def __init__(self, function: LogicFunction, weights: array, constants: array, stop_iteration: int = 200):
+    def __init__(self, function: LogicFunction, weights, learn_constant, rbf_constant, stop_iteration=200):
         """
         Perceptron constructor.
 
         :param function: Logic function that network should realise (AND or XOR).
         :param weights: 3-elemental array of weights used in training.
-        :param constants: 2-elemental array of constants used in training. First element is "learn constant", second
-                            element is "RBF constant". Both constants should not be 0!
+        :param learn_constant: Learn constant used in training.
+        :param rbf_constant: RBF constant used in RBF training.
         :param stop_iteration: Iteration after which training is forcibly stopped. Should be at least 20.
         """
         self.__train_inputs = [
@@ -67,9 +27,45 @@ class Perceptron:
             [1, 1, 1]
         ]
         self.__train_outputs = function.value
-        self.__weights = self.__validate_weights(weights)
-        self.__constants = self.__validate_constants(constants)
-        self.__stop_iteration = self.__validate_stop_iteration(stop_iteration)
+
+        self.__weights = weights
+        self.__validate_weights()
+
+        self.__learn_constant = learn_constant
+        self.__rbf_constant = rbf_constant
+        self.__validate_constants()
+
+        self.__stop_iteration = stop_iteration
+        self.__validate_stop_iteration()
+
+    def __validate_weights(self):
+        """
+        Validates "weights" property.
+
+        :raises PerceptronException: If property length is not equal to 3.
+        """
+        if len(self.__weights) != 3:
+            raise PerceptronException("Weight vector should have exactly 3 elements!")
+
+    def __validate_constants(self):
+        """
+        Validates constants used in training.
+
+        :raises PerceptronException: If "learn_constant" or "rbf_constant" equals 0.
+        """
+        if self.__learn_constant == 0:
+            raise PerceptronException("Learn constant should not be equal to 0!")
+        if self.__rbf_constant == 0:
+            raise PerceptronException("RBF constant should not be equal to 0!")
+
+    def __validate_stop_iteration(self):
+        """
+        Validates "stop_iteration" property.
+
+        :raises PerceptronException: If property value is lesser than 20.
+        """
+        if self.__stop_iteration < 20:
+            raise PerceptronException("Perceptron should take at least 20 iterations to learn!")
 
     def __draw_inputs(self, figure=None):
         """
@@ -170,7 +166,7 @@ class Perceptron:
         :return: Nothing.
         """
         # im = input multiplier
-        im = self.__constants[0] * (self.__train_outputs[cii] - evaluated_output)
+        im = self.__learn_constant * (self.__train_outputs[cii] - evaluated_output)
         new_weights = []
         for index in range(3):
             new_weights.append(self.__weights[index] + im * self.__train_inputs[cii][index])
@@ -183,7 +179,7 @@ class Perceptron:
         :param bu_sum: Sum used to determine next weights.
         :return: Nothing.
         """
-        self.__weights = numpy.add(self.__weights, self.__constants[0] * bu_sum)
+        self.__weights = numpy.add(self.__weights, self.__learn_constant * bu_sum)
 
     def __evaluate_bu_sum(self, to_add):
         """
@@ -221,7 +217,7 @@ class Perceptron:
 
         :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
         :return: Pair of (weights, iterations taken) after training.
-                    If weights were not found, returns pair of (None, None)
+                    If weights were not found, returns pair of (None, iterations taken)
         """
         i = 0                          # i = iteration
         iwc = 0                        # iwc = iterations without change
@@ -232,7 +228,7 @@ class Perceptron:
 
         while iwc != ic:
             if i >= self.__stop_iteration:
-                return None, None
+                return None, i + 1
             cii = i % ic               # cii = current input index
             dot_product = self.__dot_product(self.__train_inputs[cii], self.__weights)
             output: int = self.__evaluate_output(dot_product)
@@ -258,7 +254,7 @@ class Perceptron:
         :param round_digits: Rounds final weights with given precision. If lower than 0, does nothing.
                              Default value is -1.
         :return: Pair of (weights, iterations taken) after training.
-                 If weights were not found, returns pair of (None, None).
+                 If weights were not found, returns pair of (None, iterations taken).
         """
         return self.__bu_train(False, round_digits)
 
@@ -272,7 +268,7 @@ class Perceptron:
         :param frt: Shows if this method was called from rbf_train method.
                     If value is "True", prevents bu_train from drawing inputs and decision boundaries.
         :return: Pair of (weights, iterations taken) after training.
-                 If weights were not found, returns pair of (None, None)
+                 If weights were not found, returns pair of (None, iterations taken)
         """
         i = 0                          # i = iteration
         ic = len(self.__train_inputs)  # ic = input count
@@ -284,7 +280,7 @@ class Perceptron:
 
         while not should_end:
             if i >= self.__stop_iteration:
-                return None, None
+                return None, i
             to_add = [0] * ic
 
             # cii = current input index
@@ -319,7 +315,7 @@ class Perceptron:
         """
 
         numerator = numpy.power(-1 * numpy.absolute(x - y), 2)
-        denominator = 2 * numpy.power(self.__constants[1], 2)
+        denominator = 2 * numpy.power(self.__rbf_constant, 2)
         return numpy.exp(numerator / denominator)
 
     def rbf_train(self, round_digits=-1):
@@ -329,7 +325,7 @@ class Perceptron:
 
         :param round_digits: Rounds weights with given precision. If lower than 0, does nothing. Default value is -1.
         :return: Pair of (weights, iterations taken) after training.
-                    If weights were not found, returns a pair of (None, None)
+                    If weights were not found, returns a pair of (None, iterations taken)
         """
         for train_input in self.__train_inputs:
             rbf = self.__rbf_kernel(train_input[1], train_input[2])
