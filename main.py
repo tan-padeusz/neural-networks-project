@@ -1,9 +1,10 @@
 import numpy
+
 from perceptron import Perceptron
 from hopfield import SynchronousHopfieldNetwork
 from backpropagation import BackpropagationNetwork
-from lf import LogicFunction
-from um import UpdateMethod
+
+from enums import LogicFunction, UpdateMethod
 
 
 if __name__ == '__main__':

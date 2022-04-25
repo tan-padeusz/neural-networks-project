@@ -1,8 +1,7 @@
 import numpy
 
-from exception import BackpropagationException
-from lf import LogicFunction
-from um import UpdateMethod
+from enums import LogicFunction, UpdateMethod
+from exceptions import BackpropagationException
 
 
 class BackpropagationNetwork:

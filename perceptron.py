@@ -1,15 +1,14 @@
 import numpy
 import matplotlib.pyplot as pyplot
 
-from exception import PerceptronException
-from lf import LogicFunction
+from enums import LogicFunction
+from exceptions import PerceptronException
 
 
 class Perceptron:
     """
     Class that represents perceptron network with single neuron.
     """
-
     def __init__(self, function: LogicFunction, weights, learn_constant, rbf_constant, stop_iteration=200):
         """
         Perceptron constructor.

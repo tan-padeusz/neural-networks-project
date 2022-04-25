@@ -1,11 +1,15 @@
 import numpy.linalg
-from exception import HopfieldNetworkException
+
+from exceptions import HopfieldNetworkException
 
 
 class SynchronousHopfieldNetwork:
+    """
+    Class that represents Hopfield network that works synchronously.
+    """
     def __init__(self, neuron_count, points, weights, control_signal, stop_iteration=1000):
         """
-        Class that represents Hopfield network that works synchronously.
+        Hopfield network constructor.
 
         :param neuron_count: Number of neurons used in network.
         :param points: Points that network works on.
