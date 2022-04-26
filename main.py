@@ -77,6 +77,9 @@ if __name__ == '__main__':
     print("Uzyskane wyniki:")
     SynchronousHopfieldNetwork.print_results(hopfield_results_2D)
 
+    # Algorytm propagacji wstecznej.
+    # Po ukazaniu się wykresu ze zmianami energii, należy go zamknąć by kontynuować działanie programu.
+
     print("")
     print("Zadanie 3 - propagacja wsteczna dla funkcji XOR")
     print("")

@@ -1,0 +1,17 @@
+Zadanie 1 - algorytmy uczenia się perceptronu
+Implementacja tych algorytmów znajduje się w pliku "perceptron.py"
+
+Zadanie 2 - sieć Hopfielda w trybie synchronicznym
+Implementacja sieci znajduje się w pliku "hopfield.py"
+
+Zadanie 3 - algorytm propagacji wstecznej
+Implementacja tego algorytmu znajduje się w pliku "backpropagation.py"
+
+Plik "exceptions.py" zawiera klasy wyjątków stosowanych przy rozwiązywaniu zadań.
+Plik "enums.py" zawiera klasy Enum stosowane przy rozwiązywaniu zadań.
+
+Plik "main.py" zawiera funkcję main, w której są wywołane odpowiednie metody
+prezentujące działanie poszczególnych zadań w projekcie.
+
+By uruchomić projekt wystarczy uruchomić funkcję main. Wymagane są biblioteki
+numpy oraz matplotlib.pyplot

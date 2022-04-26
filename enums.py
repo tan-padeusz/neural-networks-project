@@ -13,5 +13,5 @@ class UpdateMethod(Enum):
     """
     Enum class that represents update method used in backpropagation.
     """
-    PARTIAL_ENERGY = -1
-    TOTAL_ENERGY = 1
+    PARTIAL_ENERGY = "partial energy"
+    TOTAL_ENERGY = "total energy"

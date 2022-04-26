@@ -1,11 +1,12 @@
 import numpy
+import matplotlib.pyplot as pyplot
 
 from enums import LogicFunction, UpdateMethod
 from exceptions import BackpropagationException
 
 
 class BackpropagationNetwork:
-    def __init__(self, initial_weights, learn_constant, stop_threshold=0.2, stop_iteration=10):
+    def __init__(self, initial_weights, learn_constant, stop_threshold=0.2, stop_iteration=3):
         """
         Class that represents backpropagation network.
 
@@ -68,7 +69,7 @@ class BackpropagationNetwork:
 
         :raise BackpropagationException: If property value is lower than 5.
         """
-        if self.__stop_iteration < 10:
+        if self.__stop_iteration < 3:
             raise BackpropagationException("There must be at least 5 iterations to forcibly stop training!")
 
     @staticmethod
@@ -123,7 +124,9 @@ class BackpropagationNetwork:
         :param update_method: Parameter that indicates when weights should be updated.
         :returns: A pair of (final_weights, iteration_count).
         """
+        pyplot.close()
         iteration = 0
+        figure = None
         while True:
             iteration += 1
             gradients = []
@@ -133,14 +136,18 @@ class BackpropagationNetwork:
                 train_output = self.__train_outputs[index]
                 output, gradient = self.__evaluate_gradient(train_input, train_output)
                 gradients.append(gradient)
-                error += numpy.power(train_output - output, 2)
+                energy = numpy.power(train_output - output, 2)
+                figure = self.__draw_energy((iteration - 1) * 4 + index, energy, figure)
+                error += energy
+
                 if update_method == UpdateMethod.PARTIAL_ENERGY:
                     self.__update_weights(gradient)
-            if error <= self.__stop_threshold:
+
+            if error <= self.__stop_threshold or iteration >= self.__stop_iteration:
+                self.__show_energy_change(figure, update_method)
                 return self.__weights, iteration
-            elif iteration >= self.__stop_iteration:
-                return self.__weights, iteration
-            elif update_method == UpdateMethod.TOTAL_ENERGY:
+
+            if update_method == UpdateMethod.TOTAL_ENERGY:
                 self.__update_weights(self.__sum_gradients(gradients))
 
     def __evaluate_gradient(self, train_input, train_output):
@@ -180,3 +187,33 @@ class BackpropagationNetwork:
         gradient.append(delta_weights)
 
         return rd_neuron_out, gradient
+
+    @staticmethod
+    def __draw_energy(iteration, energy, figure=None):
+        """
+        Draws energy point on figure.
+
+        :param iteration: X-value on diagram.
+        :param energy: Y-value on diagram.
+        :param figure: Figure on which diagram is drawn.
+                       If it's None, new figure will be given,
+        :returns: Figure on which diagram is drawn.
+        """
+        if figure is None:
+            tmp, figure = pyplot.subplots()
+        figure.scatter(iteration, energy)
+        return figure
+
+    @staticmethod
+    def __show_energy_change(figure, mode):
+        """
+        Shows energy change diagram.
+
+        :param figure: Figure on which diagram is drawn.
+        :param mode: Weights update mode.
+        """
+        figure.set_title(f"Energy change - {mode.value}")
+        figure.grid()
+        pyplot.xlabel("Iteration")
+        pyplot.ylabel("Energy")
+        pyplot.show()
